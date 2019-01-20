@@ -7,12 +7,14 @@ import json
 import pytest
 from aiohttp.client_exceptions import ClientResponseError
 
+SYSTEM_GROUP = 7
+
 
 @pytest.fixture
 def sensey():
     return {
         'id': 'sensey',
-        'profiles': [0, 3, 7],
+        'groups': [0, 3, 6],
         'type': 'TempSensorOneWire',
         'data': {
             'address': 'FF',
@@ -31,13 +33,13 @@ def ids(obj_list):
 
 
 @pytest.mark.asyncio
-async def test_profiles(session, host):
-    url = host + '/spark/system/profiles'
-    assert await response(session.get(url)) == [0]
+async def test_groups(session, host):
+    url = host + '/spark/system/groups'
+    assert await response(session.get(url)) == [0, SYSTEM_GROUP]
 
-    all_profiles = [i for i in range(8)]
-    assert await response(session.put(url, json=all_profiles)) == all_profiles
-    assert await response(session.get(url)) == all_profiles
+    all_groups = [i for i in range(8)]
+    assert await response(session.put(url, json=all_groups)) == all_groups
+    assert await response(session.get(url)) == all_groups
 
 
 @pytest.mark.asyncio
@@ -102,19 +104,19 @@ async def test_reset_objects(session, host):
 
 @pytest.mark.asyncio
 async def test_read_active(session, host):
-    await session.put(host + '/spark/system/profiles', json=[])
+    await session.put(host + '/spark/system/groups', json=[])
     retd = await response(session.get(host + '/spark/objects'))
     assert retd[-1]['id'] == 'sensex'
     assert retd[-1]['type'] == 'InactiveObject'
 
-    # activate some empty profiles
-    await session.put(host + '/spark/system/profiles', json=[1, 2])
+    # activate some empty groups
+    await session.put(host + '/spark/system/groups', json=[1, 2])
     retd = await response(session.get(host + '/spark/objects'))
     assert retd[-1]['id'] == 'sensex'
     assert retd[-1]['type'] == 'InactiveObject'
 
-    # activate filled profiles
-    await session.put(host + '/spark/system/profiles', json=[0, 3, 7])
+    # activate filled groups
+    await session.put(host + '/spark/system/groups', json=[0, 3, 6])
     retd = await response(session.get(host + '/spark/objects'))
     assert retd[-1]['id'] == 'sensex'
     assert retd[-1]['type'] == 'TempSensorOneWire'
