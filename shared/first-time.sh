@@ -25,21 +25,22 @@ do_script() {
 
     if [ $(prompt "Do you want to create default dashboards?") = yes ]; then
         HOST=https://localhost/datastore
-        DATABASES="services dashboards dashboard-items"
+        DATABASE="brewblox-ui-store"
+        MODULES="services dashboards dashboard-items"
 
         docker-compose up -d
         curl -sk -X GET --retry 5 ${HOST}
         curl -sk -X PUT ${HOST}/_users
+        curl -sk -X PUT ${HOST}/${DATABASE}
 
-        for db in ${DATABASES}; do
-            curl -sk -X PUT ${HOST}/${db}
-            cat presets/${db}.json \
+        for mod in ${MODULES}; do
+            cat presets/${mod}.json \
             | curl \
                 -sk \
                 -X POST \
                 --header 'Content-Type: application/json' \
                 --header 'Accept: application/json' \
-                --data "@-" "${HOST}/${db}/_bulk_docs"
+                --data "@-" "${HOST}/${DATABASE}/_bulk_docs"
         done
         docker-compose down
     fi

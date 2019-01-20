@@ -1,7 +1,7 @@
 {
     "docs": [
         {
-            "_id": "dashboard-home",
+            "_id": "dashboards__dashboard-home",
             "title": "Home Dashboard",
             "order": 1
         }
