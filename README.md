@@ -1,69 +1,34 @@
 # BrewBlox Deployment
 
-This repository contains integration tests for BrewBlox, and example configurations for getting started.
+This repository contains:
+* Integration tests
+* Default configuration files
+* Docker base images
 
-# Getting Started
+A guide for installing BrewBlox can be found [here](https://brewblox.netlify.com/user/startup.html).
 
-### Requirements
+## Integration tests
 
-- Raspberry Pi or Linux desktop computer / laptop
-- BrewPi Spark controller
+The integration tests start a BrewBlox environment using docker-compose, and then run their tests against the exposed REST API's.
 
-## Install
-
-On the machine where you want to run BrewBlox, open your terminal, and navigate to the directory where you want to place the configuration files. A `./brewblox/` subdirectory will be automatically created.
-
-Download and run the install script. This will install Docker, docker-compose, and the default BrewBlox configuration.
-
-```
-curl -sSL https://brewblox.netlify.com/install > install.sh
-bash ./install.sh
-```
-
-## Flash the firmware
-
-### Desktop computer
-
-Connect the Spark to the computer using USB, and run the following commands:
-
-```
-docker pull brewblox/firmware-flasher:develop
-docker run -it --rm --privileged brewblox/firmware-flasher:develop trigger-dfu
-docker run -it --rm --privileged brewblox/firmware-flasher:develop flash
-docker run -it --rm --privileged brewblox/firmware-flasher:develop flash-bootloader
-```
-
-### Raspberry Pi
-
-Connect the Spark to the Raspberry Pi using USB, and run the following commands:
-
-```
-docker pull brewblox/firmware-flasher:rpi-develop
-docker run -it --rm --privileged brewblox/firmware-flasher:rpi-develop trigger-dfu
-docker run -it --rm --privileged brewblox/firmware-flasher:rpi-develop flash
-docker run -it --rm --privileged brewblox/firmware-flasher:rpi-develop flash-bootloader
-```
-
-## Services
-
-### Install
-
-Pull the docker images. This may take a few minutes.
-
-```
-cd brewblox
+To run:
+```bash
+cd integration
 docker-compose pull
-
-# Run the first-time setup script
-bash ./first-time.sh
+bash run.sh
 ```
 
-### Start
+Afterwards, logs for relevant services can be found in `integration/logs`.
 
-In your terminal (in the `brewblox/` directory), run
+## Default configuration files
 
-```
-docker-compose up -d
-```
+Configuration files are downloaded by the BrewBlox [install script](https://brewblox.netlify.com/install). The install script will download two parts:
 
-In your browser, visit the IP address of your computer or Raspberry Pi to open the UI.
+* architecture-specific files in either `amd64` or `armhf`
+* generic files in `shared`
+
+## Docker base images
+
+As described in [design decisions: base images](https://brewblox.netlify.com/dev/decisions/crosscompilation_base_images.html), we are using our own Docker base images for the Raspberry Pi architecture.
+
+The scripts to generate them are placed in `base_images/`. These scripts should only be re-run if there are any upstream updates to the relevant images.
