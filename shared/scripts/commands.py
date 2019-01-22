@@ -3,6 +3,7 @@ Entrypoint for the BrewBlox menu
 """
 
 import platform
+import sys
 from abc import ABC, abstractmethod
 from subprocess import STDOUT, CalledProcessError, check_call
 
@@ -12,12 +13,12 @@ def is_pi():
 
 
 class Command(ABC):
-    def __init__(self, description, keywords):
+    def __init__(self, description, keyword):
         self.description = description
-        self.keywords = keywords
+        self.keyword = keyword
 
     def __str__(self):
-        return '{} ({}) :: {}'.format(self.keywords[0], ', '.join(self.keywords[1:]), self.description)
+        return '{} :: {}'.format(self.keyword, self.description)
 
     def announce(self, shell_cmds):
         print('The following shell commands will be used: \n')
@@ -42,7 +43,7 @@ class Command(ABC):
 
 class ExitCommand(Command):
     def __init__(self):
-        super().__init__('Exit this menu', ['exit', 'x'],)
+        super().__init__('Exit this menu', 'exit')
 
     def action(self):
         raise SystemExit
@@ -50,16 +51,16 @@ class ExitCommand(Command):
 
 class ComposeDownCommand(Command):
     def __init__(self):
-        super().__init__('Stop running services', ['down', 'd'])
+        super().__init__('Stop running services', 'down')
 
     def action(self):
-        cmd = 'docker-compose stop'
+        cmd = 'docker-compose down'
         self.run_all([cmd])
 
 
 class ComposeUpCommand(Command):
     def __init__(self):
-        super().__init__('Start all services if not running', ['up', 'u'])
+        super().__init__('Start all services if not running', 'up')
 
     def action(self):
         cmd = 'docker-compose up -d'
@@ -68,7 +69,7 @@ class ComposeUpCommand(Command):
 
 class ComposeUpdateCommand(Command):
     def __init__(self):
-        super().__init__('Update all services', ['update', 'p'])
+        super().__init__('Update all services', 'update')
 
     def action(self):
         shell_commands = [
@@ -81,7 +82,7 @@ class ComposeUpdateCommand(Command):
 
 class SetupCommand(Command):
     def __init__(self):
-        super().__init__('Run first-time setup', ['setup', 'e'])
+        super().__init__('Run first-time setup', 'setup')
 
     def action(self):
         host = 'https://localhost/datastore'
@@ -116,7 +117,7 @@ class SetupCommand(Command):
 
 class FirmwareFlashCommand(Command):
     def __init__(self):
-        super().__init__('Flash firmware on Spark', ['flash', 'f'])
+        super().__init__('Flash firmware on Spark', 'flash')
 
     def action(self):
         tag = 'rpi-develop' if is_pi() else 'develop'
@@ -136,11 +137,26 @@ class FirmwareFlashCommand(Command):
 
 class CheckStatusCommand(Command):
     def __init__(self):
-        super().__init__('Check system status', ['status', 'a'])
+        super().__init__('Check system status', 'status')
 
     def action(self):
         cmd = 'docker-compose ps'
         self.run_all([cmd])
+
+
+class LogFileCommand(Command):
+    def __init__(self):
+        super().__init__('Write service logs to brewblox-log.txt', 'log')
+
+    def action(self):
+        shell_commands = [
+            'date > brewblox-log.txt',
+            'for svc in $(docker-compose ps --services | tr "\\n" " "); do ' +
+            'docker-compose logs -t --no-color --tail 200 ${svc} >> brewblox-log.txt; ' +
+            'echo \'\\n\' >> brewblox-log.txt; ' +
+            'done;'
+        ]
+        self.run_all(shell_commands)
 
 
 MENU = """
@@ -160,6 +176,7 @@ def main():
         SetupCommand(),
         FirmwareFlashCommand(),
         CheckStatusCommand(),
+        LogFileCommand(),
         ExitCommand(),
     ]
     command_descriptions = [
@@ -167,20 +184,28 @@ def main():
         for idx, cmd in enumerate(all_commands)
     ]
 
+    args = sys.argv[1:]
     print('Welcome to the BrewBlox menu!')
+    if args:
+        print('Running commands: {}'.format(', '.join(args)))
 
     try:
         while True:
             print(MENU.format('\n'.join(command_descriptions)))
-            arg = input('Please type a command name or index, and press ENTER. ')
+            try:
+                arg = args.pop(0)
+            except IndexError:
+                arg = input('Please type a command name or index, and press ENTER. ')
 
             command = next(
-                (cmd for idx, cmd in enumerate(all_commands) if arg in cmd.keywords + [str(idx+1)]),
+                (cmd for idx, cmd in enumerate(all_commands) if arg in [cmd.keyword, str(idx+1)]),
                 None,
             )
 
             if command:
                 command.action()
+
+            if not args:
                 break
 
     except CalledProcessError as ex:
