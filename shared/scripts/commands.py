@@ -18,7 +18,7 @@ class Command(ABC):
         self.keyword = keyword
 
     def __str__(self):
-        return '{} :: {}'.format(self.keyword, self.description)
+        return '{} {}'.format(self.keyword.ljust(15), self.description)
 
     def announce(self, shell_cmds):
         print('The following shell commands will be used: \n')
@@ -160,9 +160,10 @@ class LogFileCommand(Command):
 
 
 MENU = """
------------------------------
+index - name        description
+----------------------------------------------------------
 {}
------------------------------
+----------------------------------------------------------
 
 Press Ctrl+C to exit.
 """
