@@ -135,6 +135,23 @@ class FirmwareFlashCommand(Command):
         self.run_all(shell_commands)
 
 
+class WiFiCommand(Command):
+    def __init__(self):
+        super().__init__('Connect Spark to WiFi', 'wifi')
+
+    def action(self):
+        tag = 'rpi-develop' if is_pi() else 'develop'
+        shell_commands = [
+            'docker-compose down',
+            'docker pull brewblox/firmware-flasher:{}'.format(tag),
+            'sleep 2',
+            'docker run -it --rm --privileged brewblox/firmware-flasher:{} wifi'.format(tag),
+        ]
+
+        input('Please press ENTER when your Spark is connected over USB')
+        self.run_all(shell_commands)
+
+
 class CheckStatusCommand(Command):
     def __init__(self):
         super().__init__('Check system status', 'status')
@@ -176,6 +193,7 @@ def main():
         ComposeUpdateCommand(),
         SetupCommand(),
         FirmwareFlashCommand(),
+        WiFiCommand(),
         CheckStatusCommand(),
         LogFileCommand(),
         ExitCommand(),
