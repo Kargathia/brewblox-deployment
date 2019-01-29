@@ -2,7 +2,6 @@
 
 This repository contains:
 * Integration tests
-* Default configuration files
 * Docker base images
 
 A guide for installing BrewBlox can be found [here](https://brewblox.netlify.com/user/startup.html).
@@ -19,13 +18,6 @@ bash run.sh
 ```
 
 Afterwards, logs for relevant services can be found in `integration/logs`.
-
-## Default configuration files
-
-Configuration files are downloaded by the BrewBlox [install script](https://brewblox.netlify.com/install). The install script will download two parts:
-
-* architecture-specific files in either `amd64` or `armhf`
-* generic files in `shared`
 
 ## Docker base images
 
