@@ -1,26 +1,37 @@
 #!/usr/bin/env bash
 set -e
 
-DOCKER_REPOS=" \
-brewblox-devcon-spark \
-brewblox-history \
-brewblox-mdns \
-brewblox-ui \
-firmware-flasher \
+AMD_ARM_REPOS=" \
+brewblox/brewblox-devcon-spark \
+brewblox/brewblox-history \
+brewblox/brewblox-mdns \
+brewblox/brewblox-ui \
+brewblox/firmware-flasher \
 "
 
-for repo in ${DOCKER_REPOS}; do
-    docker pull brewblox/${repo}:newest-tag
-    docker pull brewblox/${repo}:rpi-newest-tag
+AMD_REPOS=" \
+brewblox/firmware-simulator \
+"
+
+for repo in ${AMD_ARM_REPOS}; do
+    docker pull ${repo}:newest-tag
+    docker pull ${repo}:rpi-newest-tag
 done
 
-for repo in ${DOCKER_REPOS}; do
-    docker tag brewblox/${repo}:newest-tag brewblox/${repo}:stable
-    docker push brewblox/${repo}:stable
-    docker tag brewblox/${repo}:rpi-newest-tag brewblox/${repo}:rpi-stable
-    docker push brewblox/${repo}:rpi-stable
+for repo in ${AMD_REPOS}; do
+    docker pull ${repo}:newest-tag
 done
 
-docker pull brewblox/firmware-simulator:newest-tag
-docker tag brewblox/firmware-simulator:newest-tag brewblox/firmware-simulator:stable
-docker push brewblox/firmware-simulator:stable
+# Re-tag and push if everything could be pulled OK
+
+for repo in ${AMD_ARM_REPOS}; do
+    docker tag ${repo}:newest-tag ${repo}:stable
+    docker push ${repo}:stable
+    docker tag ${repo}:rpi-newest-tag ${repo}:rpi-stable
+    docker push ${repo}:rpi-stable
+done
+
+for repo in ${AMD_REPOS}; do
+    docker tag ${repo}:newest-tag ${repo}:stable
+    docker push ${repo}:stable
+done
