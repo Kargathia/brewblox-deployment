@@ -7,6 +7,7 @@ brewblox/brewblox-history \
 brewblox/brewblox-mdns \
 brewblox/brewblox-ui \
 brewblox/firmware-flasher \
+brewblox/brewblox-ctl-lib \
 "
 
 AMD_REPOS=" \
