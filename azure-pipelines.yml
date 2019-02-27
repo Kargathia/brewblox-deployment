@@ -1,0 +1,26 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+variables:
+  # Variables imported from brewblox group:
+  # DOCKER_USER
+  # DOCKER_PASSWORD
+  # PYPI_USER
+  # PYPI_PASSWORD
+  - group: brewblox
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    addToPath: true
+    versionSpec: '3.7'
+    architecture: 'x64'
+
+- bash: |
+    pip install pipenv docker-compose
+    pipenv install --system --dev --deploy
+    docker-compose pull
+    bash ./run.sh
+    cat logs/*
+  workingDirectory: integration
+  displayName: Run Pytest
